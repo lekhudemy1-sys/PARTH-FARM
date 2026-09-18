@@ -1,10 +1,12 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parth Farm | Booking Management</title>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 * {
@@ -303,6 +305,11 @@ textarea {
     color: white;
 }
 
+.btn-edit {
+    background: #1e3a5f;
+    color: #7eb8ff;
+}
+
 /* DATABASE */
 .database {
     margin-top: 25px;
@@ -315,7 +322,7 @@ textarea {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 950px;
+    min-width: 1100px;
 }
 
 th,
@@ -372,6 +379,11 @@ td {
     color: #ff8990;
 }
 
+.edit-btn {
+    background: #1e3a5f;
+    color: #7eb8ff;
+}
+
 /* MODAL */
 .modal {
     display: none;
@@ -386,11 +398,13 @@ td {
 
 .modal-content {
     width: 100%;
-    max-width: 430px;
+    max-width: 480px;
     background: #111711;
     border: 1px solid #344134;
     border-radius: 18px;
     padding: 22px;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-content h3 {
@@ -549,9 +563,11 @@ td {
         <!-- BOOKING FORM -->
         <section class="panel">
 
-            <h2>Add Booking</h2>
+            <h2 id="formTitle">Add Booking</h2>
 
             <form id="bookingForm">
+
+                <input type="hidden" id="editBookingId">
 
                 <div class="form-group">
                     <label>Customer Name</label>
@@ -577,13 +593,31 @@ td {
                 </div>
 
                 <div class="form-group">
-                    <label>Total Amount</label>
+                    <label>Total Amount (₹)</label>
                     <input type="number" id="totalAmount" min="0" value="0">
                 </div>
 
                 <div class="form-group">
-                    <label>Booking Amount</label>
+                    <label>Booking Amount / Advance (₹)</label>
                     <input type="number" id="bookingAmount" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode">
+                        <option value="">Select Mode</option>
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Card">Card</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Date</label>
+                    <input type="date" id="paymentDate">
                 </div>
 
                 <div class="form-group">
@@ -591,15 +625,19 @@ td {
                     <textarea id="notes" rows="3"></textarea>
                 </div>
 
-                <button class="btn btn-primary" type="submit">
+                <button class="btn btn-primary" type="submit" id="submitBtn">
                     SAVE BOOKING
+                </button>
+
+                <button class="btn btn-secondary" type="button" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">
+                    CANCEL EDIT
                 </button>
 
             </form>
 
             <button
                 class="btn btn-secondary"
-                onclick="blockDate()">
+                onclick="blockDate()" style="margin-top:10px;">
                 BLOCK A DATE
             </button>
 
@@ -621,12 +659,13 @@ td {
                         <th>ID</th>
                         <th>Customer</th>
                         <th>Mobile</th>
-                        <th>Farm</th>
                         <th>Date</th>
                         <th>Status</th>
                         <th>Total</th>
-                        <th>Booking Amount</th>
+                        <th>Paid</th>
                         <th>Balance</th>
+                        <th>Payment Mode</th>
+                        <th>Payment Date</th>
                         <th>Notes</th>
                         <th>Action</th>
                     </tr>
@@ -658,137 +697,108 @@ td {
 </div>
 
 <script>
+/* =====================================================
+   SUPABASE CONFIG - REPLACE THESE WITH YOUR VALUES
+===================================================== */
+const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";       // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";     // from Project Settings → API
+
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =====================================================
-   DATABASE
+   STATE
 ===================================================== */
-
-let bookings = JSON.parse(
-    localStorage.getItem("parthFarmBookings") || "[]"
-);
-
-let blockedDates = JSON.parse(
-    localStorage.getItem("parthFarmBlockedDates") || "[]"
-);
-
+let bookings = [];
+let blockedDates = [];
 let currentDate = new Date();
-
+let isEditing = false;
 
 /* =====================================================
-   SAVE DATABASE
+   LOAD DATA FROM SUPABASE
 ===================================================== */
+async function loadData() {
+    try {
+        // Load bookings
+        const { data: bookingsData, error: bookingsError } = await supabaseClient
+            .from('bookings')
+            .select('*')
+            .order('date', { ascending: true });
 
-function saveDatabase() {
+        if (bookingsError) throw bookingsError;
+        bookings = bookingsData || [];
 
-    localStorage.setItem(
-        "parthFarmBookings",
-        JSON.stringify(bookings)
-    );
+        // Load blocked dates
+        const { data: blockedData, error: blockedError } = await supabaseClient
+            .from('blocked_dates')
+            .select('date');
 
-    localStorage.setItem(
-        "parthFarmBlockedDates",
-        JSON.stringify(blockedDates)
-    );
+        if (blockedError) throw blockedError;
+        blockedDates = (blockedData || []).map(b => b.date);
+
+        updateEverything();
+    } catch (err) {
+        console.error("Load error:", err);
+        alert("Failed to load data from Supabase. Check console & your keys.");
+    }
 }
-
 
 /* =====================================================
    DATE FORMAT
 ===================================================== */
-
 function formatDate(date) {
-
     const y = date.getFullYear();
-
     const m = String(date.getMonth() + 1).padStart(2, "0");
-
     const d = String(date.getDate()).padStart(2, "0");
-
     return `${y}-${m}-${d}`;
 }
-
 
 /* =====================================================
    CALENDAR
 ===================================================== */
-
 function renderCalendar() {
-
     const calendar = document.getElementById("calendar");
-
     calendar.innerHTML = "";
 
     const year = currentDate.getFullYear();
-
     const month = currentDate.getMonth();
-
     const firstDay = new Date(year, month, 1).getDay();
-
-    const daysInMonth =
-        new Date(year, month + 1, 0).getDate();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
     document.getElementById("monthTitle").textContent =
-        new Date(year, month)
-            .toLocaleString("en-IN", {
-                month: "long",
-                year: "numeric"
-            });
+        new Date(year, month).toLocaleString("en-IN", {
+            month: "long",
+            year: "numeric"
+        });
 
-    /* EMPTY DAYS */
-
-    for(let i = 0; i < firstDay; i++) {
-
+    for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement("div");
-
         empty.className = "day empty";
-
         calendar.appendChild(empty);
     }
 
-    /* DAYS */
-
-    for(let day = 1; day <= daysInMonth; day++) {
-
+    for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(year, month, day);
-
         const dateString = formatDate(date);
-
         const cell = document.createElement("div");
-
         cell.className = "day";
 
-        /* TODAY */
-
-        if(dateString === formatDate(new Date())) {
-
+        if (dateString === formatDate(new Date())) {
             cell.classList.add("today");
         }
 
         let status = "Available";
 
-        /* BLOCKED */
-
-        if(blockedDates.includes(dateString)) {
-
+        if (blockedDates.includes(dateString)) {
             status = "Blocked";
-
         } else {
-
             const booking = bookings.find(
-                b =>
-                    b.date === dateString &&
-                    b.status !== "Cancelled"
+                b => b.date === dateString && b.status !== "Cancelled"
             );
-
-            if(booking) {
-
-                status = booking.status;
-            }
+            if (booking) status = booking.status;
         }
 
-        cell.classList.add(
-            status.toLowerCase()
-        );
+        cell.classList.add(status.toLowerCase());
 
         cell.innerHTML = `
             <div class="day-number">${day}</div>
@@ -797,433 +807,331 @@ function renderCalendar() {
         `;
 
         cell.onclick = () => showDateDetails(dateString);
-
         calendar.appendChild(cell);
     }
 }
 
-
 /* =====================================================
    MONTH NAVIGATION
 ===================================================== */
-
 function previousMonth() {
-
-    currentDate.setMonth(
-        currentDate.getMonth() - 1
-    );
-
+    currentDate.setMonth(currentDate.getMonth() - 1);
     renderCalendar();
 }
-
 
 function nextMonth() {
-
-    currentDate.setMonth(
-        currentDate.getMonth() + 1
-    );
-
+    currentDate.setMonth(currentDate.getMonth() + 1);
     renderCalendar();
 }
-
 
 function goToday() {
-
     currentDate = new Date();
-
     renderCalendar();
 }
 
-
 /* =====================================================
-   ADD BOOKING
+   ADD / UPDATE BOOKING
 ===================================================== */
-
-document
-.getElementById("bookingForm")
-.addEventListener("submit", function(e) {
-
+document.getElementById("bookingForm").addEventListener("submit", async function (e) {
     e.preventDefault();
 
-    const name =
-        document.getElementById("customerName").value.trim();
+    const name = document.getElementById("customerName").value.trim();
+    const mobile = document.getElementById("mobile").value.trim();
+    const date = document.getElementById("bookingDate").value;
+    const status = document.getElementById("bookingStatus").value;
+    const total = Number(document.getElementById("totalAmount").value);
+    const bookingAmount = Number(document.getElementById("bookingAmount").value);
+    const paymentMode = document.getElementById("paymentMode").value;
+    const paymentDate = document.getElementById("paymentDate").value || null;
+    const notes = document.getElementById("notes").value.trim();
+    const editId = document.getElementById("editBookingId").value;
 
-    const mobile =
-        document.getElementById("mobile").value.trim();
-
-    const date =
-        document.getElementById("bookingDate").value;
-
-    const status =
-        document.getElementById("bookingStatus").value;
-
-    const total =
-        Number(document.getElementById("totalAmount").value);
-
-    const bookingAmount =
-        Number(document.getElementById("bookingAmount").value);
-
-    const notes =
-        document.getElementById("notes").value.trim();
-
-    if(!date) {
-
+    if (!date) {
         alert("Please select a date.");
-
         return;
     }
 
-    /* CHECK EXISTING */
+    if (bookingAmount > total) {
+        alert("Booking amount cannot be greater than total amount.");
+        return;
+    }
 
-    const existing = bookings.find(
-        b =>
-            b.date === date &&
-            b.status !== "Cancelled"
-    );
-
-    if(existing) {
-
-        alert(
-            "This date is already " +
-            existing.status.toLowerCase() +
-            "."
+    // Check conflicts only when adding new or changing date
+    if (!isEditing || (isEditing && date !== bookings.find(b => b.id === editId)?.date)) {
+        const existing = bookings.find(
+            b => b.date === date && b.status !== "Cancelled" && b.id !== editId
         );
-
-        return;
+        if (existing) {
+            alert("This date is already " + existing.status.toLowerCase() + ".");
+            return;
+        }
+        if (blockedDates.includes(date)) {
+            alert("This date is blocked.");
+            return;
+        }
     }
 
-    if(blockedDates.includes(date)) {
-
-        alert("This date is blocked.");
-
-        return;
-    }
-
-    if(bookingAmount > total) {
-
-        alert(
-            "Booking amount cannot be greater than total amount."
-        );
-
-        return;
-    }
-
-    const newBooking = {
-
-        id:
-            "PF-" +
-            Date.now(),
-
-        customer:
-            name,
-
-        mobile:
-            mobile,
-
-        farm:
-            "Parth Farm",
-
-        date:
-            date,
-
-        status:
-            status,
-
-        totalAmount:
-            total,
-
-        bookingAmount:
-            bookingAmount,
-
-        balance:
-            total - bookingAmount,
-
-        notes:
-            notes,
-
-        createdAt:
-            new Date().toISOString()
+    const payload = {
+        customer: name,
+        mobile: mobile,
+        farm: "Parth Farm",
+        date: date,
+        status: status,
+        total_amount: total,
+        booking_amount: bookingAmount,
+        balance: total - bookingAmount,
+        payment_mode: paymentMode || null,
+        payment_date: paymentDate,
+        notes: notes || null
     };
 
-    bookings.push(newBooking);
+    try {
+        if (isEditing && editId) {
+            // UPDATE
+            const { error } = await supabaseClient
+                .from('bookings')
+                .update(payload)
+                .eq('id', editId);
 
-    saveDatabase();
+            if (error) throw error;
+            alert("Booking updated successfully.");
+        } else {
+            // INSERT
+            const { error } = await supabaseClient
+                .from('bookings')
+                .insert([payload]);
 
-    this.reset();
+            if (error) throw error;
+            alert("Booking saved successfully.");
+        }
 
-    updateEverything();
-
-    alert("Booking saved successfully.");
-
+        this.reset();
+        cancelEdit();
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error saving booking: " + err.message);
+    }
 });
 
+/* =====================================================
+   EDIT BOOKING
+===================================================== */
+function editBooking(id) {
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
+
+    isEditing = true;
+    document.getElementById("editBookingId").value = booking.id;
+    document.getElementById("customerName").value = booking.customer || "";
+    document.getElementById("mobile").value = booking.mobile || "";
+    document.getElementById("bookingDate").value = booking.date || "";
+    document.getElementById("bookingStatus").value = booking.status || "Reserved";
+    document.getElementById("totalAmount").value = booking.total_amount || 0;
+    document.getElementById("bookingAmount").value = booking.booking_amount || 0;
+    document.getElementById("paymentMode").value = booking.payment_mode || "";
+    document.getElementById("paymentDate").value = booking.payment_date || "";
+    document.getElementById("notes").value = booking.notes || "";
+
+    document.getElementById("formTitle").textContent = "Edit Booking";
+    document.getElementById("submitBtn").textContent = "UPDATE BOOKING";
+    document.getElementById("cancelEditBtn").style.display = "block";
+
+    // Scroll to form
+    document.getElementById("bookingForm").scrollIntoView({ behavior: "smooth" });
+}
+
+function cancelEdit() {
+    isEditing = false;
+    document.getElementById("editBookingId").value = "";
+    document.getElementById("bookingForm").reset();
+    document.getElementById("formTitle").textContent = "Add Booking";
+    document.getElementById("submitBtn").textContent = "SAVE BOOKING";
+    document.getElementById("cancelEditBtn").style.display = "none";
+}
 
 /* =====================================================
    BLOCK DATE
 ===================================================== */
-
-function blockDate() {
-
-    const date =
-        document.getElementById("bookingDate").value;
-
-    if(!date) {
-
+async function blockDate() {
+    const date = document.getElementById("bookingDate").value;
+    if (!date) {
         alert("Select a date first.");
-
         return;
     }
 
     const booking = bookings.find(
-        b =>
-            b.date === date &&
-            b.status !== "Cancelled"
+        b => b.date === date && b.status !== "Cancelled"
     );
-
-    if(booking) {
-
+    if (booking) {
         alert("This date already has a booking.");
-
         return;
     }
 
-    if(!blockedDates.includes(date)) {
-
-        blockedDates.push(date);
-
-        saveDatabase();
-
-        updateEverything();
-
-        alert("Date blocked.");
-
-    } else {
-
+    if (blockedDates.includes(date)) {
         alert("Date is already blocked.");
+        return;
+    }
+
+    try {
+        const { error } = await supabaseClient
+            .from('blocked_dates')
+            .insert([{ date }]);
+
+        if (error) throw error;
+        alert("Date blocked.");
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error blocking date: " + err.message);
     }
 }
-
 
 /* =====================================================
    TABLE
 ===================================================== */
-
 function renderTable() {
-
-    const table =
-        document.getElementById("bookingTable");
-
+    const table = document.getElementById("bookingTable");
     table.innerHTML = "";
 
-    if(bookings.length === 0) {
-
+    if (bookings.length === 0) {
         table.innerHTML = `
             <tr>
-                <td colspan="11"
-                    style="text-align:center;color:#777;padding:30px;">
+                <td colspan="12" style="text-align:center;color:#777;padding:30px;">
                     No bookings in database.
                 </td>
             </tr>
         `;
-
         return;
     }
 
     bookings
-    .slice()
-    .sort((a,b) =>
-        a.date.localeCompare(b.date)
-    )
-    .forEach((booking) => {
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((booking) => {
+            const tr = document.createElement("tr");
+            const statusClass = booking.status.toLowerCase();
 
-        const tr =
-            document.createElement("tr");
-
-        const statusClass =
-            booking.status.toLowerCase();
-
-        tr.innerHTML = `
-
-            <td>${booking.id}</td>
-
-            <td>${escapeHTML(booking.customer)}</td>
-
-            <td>${escapeHTML(booking.mobile)}</td>
-
-            <td>Parth Farm</td>
-
-            <td>${booking.date}</td>
-
-            <td>
-                <span class="status ${statusClass}">
-                    ${booking.status}
-                </span>
-            </td>
-
-            <td>₹${booking.totalAmount}</td>
-
-            <td>₹${booking.bookingAmount}</td>
-
-            <td>₹${booking.balance}</td>
-
-            <td>${escapeHTML(booking.notes || "-")}</td>
-
-            <td>
-
-                ${
-                    booking.status === "Reserved"
-                    ?
-                    `<button
-                        class="action-btn book-btn"
-                        onclick="confirmBooking('${booking.id}')">
-                        BOOK
-                    </button>`
-                    :
-                    ""
-                }
-
-                ${
-                    booking.status !== "Cancelled"
-                    ?
-                    `<button
-                        class="action-btn cancel-btn"
-                        onclick="cancelBooking('${booking.id}')">
-                        CANCEL
-                    </button>`
-                    :
-                    ""
-                }
-
-            </td>
-        `;
-
-        table.appendChild(tr);
-    });
+            tr.innerHTML = `
+                <td>${booking.id.substring(0, 8)}...</td>
+                <td>${escapeHTML(booking.customer)}</td>
+                <td>${escapeHTML(booking.mobile)}</td>
+                <td>${booking.date}</td>
+                <td>
+                    <span class="status ${statusClass}">
+                        ${booking.status}
+                    </span>
+                </td>
+                <td>₹${booking.total_amount || 0}</td>
+                <td>₹${booking.booking_amount || 0}</td>
+                <td>₹${booking.balance || 0}</td>
+                <td>${escapeHTML(booking.payment_mode || "-")}</td>
+                <td>${booking.payment_date || "-"}</td>
+                <td>${escapeHTML(booking.notes || "-")}</td>
+                <td>
+                    ${booking.status !== "Cancelled" ? `
+                        <button class="action-btn edit-btn" onclick="editBooking('${booking.id}')">
+                            EDIT
+                        </button>
+                    ` : ""}
+                    ${booking.status === "Reserved" ? `
+                        <button class="action-btn book-btn" onclick="confirmBooking('${booking.id}')">
+                            BOOK
+                        </button>
+                    ` : ""}
+                    ${booking.status !== "Cancelled" ? `
+                        <button class="action-btn cancel-btn" onclick="cancelBooking('${booking.id}')">
+                            CANCEL
+                        </button>
+                    ` : ""}
+                </td>
+            `;
+            table.appendChild(tr);
+        });
 }
-
 
 /* =====================================================
    CONFIRM BOOKING
 ===================================================== */
+async function confirmBooking(id) {
+    try {
+        const { error } = await supabaseClient
+            .from('bookings')
+            .update({ status: "Booked" })
+            .eq('id', id);
 
-function confirmBooking(id) {
-
-    const booking =
-        bookings.find(b => b.id === id);
-
-    if(!booking) return;
-
-    booking.status = "Booked";
-
-    saveDatabase();
-
-    updateEverything();
+        if (error) throw error;
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+    }
 }
-
 
 /* =====================================================
    CANCEL BOOKING
 ===================================================== */
+async function cancelBooking(id) {
+    if (!confirm("Cancel this booking?")) return;
 
-function cancelBooking(id) {
+    try {
+        const { error } = await supabaseClient
+            .from('bookings')
+            .update({ status: "Cancelled" })
+            .eq('id', id);
 
-    const booking =
-        bookings.find(b => b.id === id);
-
-    if(!booking) return;
-
-    if(!confirm(
-        "Cancel this booking?"
-    )) {
-
-        return;
+        if (error) throw error;
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
     }
-
-    booking.status = "Cancelled";
-
-    saveDatabase();
-
-    updateEverything();
 }
-
 
 /* =====================================================
    DATE DETAILS
 ===================================================== */
-
 function showDateDetails(date) {
-
-    const modal =
-        document.getElementById("dateModal");
-
-    const title =
-        document.getElementById("modalDate");
-
-    const details =
-        document.getElementById("modalDetails");
+    const modal = document.getElementById("dateModal");
+    const title = document.getElementById("modalDate");
+    const details = document.getElementById("modalDetails");
 
     title.textContent = date;
 
-    const booking =
-        bookings.find(
-            b =>
-                b.date === date &&
-                b.status !== "Cancelled"
-        );
+    const booking = bookings.find(
+        b => b.date === date && b.status !== "Cancelled"
+    );
 
-    if(blockedDates.includes(date)) {
-
+    if (blockedDates.includes(date)) {
         details.innerHTML = `
             <p style="color:#aaa">
                 This date is <strong>BLOCKED</strong>.
             </p>
-
-            <button
-                class="btn btn-primary"
-                onclick="unblockDate('${date}')">
+            <button class="btn btn-primary" onclick="unblockDate('${date}')">
                 UNBLOCK DATE
             </button>
         `;
-
-    } else if(booking) {
-
+    } else if (booking) {
         details.innerHTML = `
-
-            <p><strong>Customer:</strong>
-            ${escapeHTML(booking.customer)}</p>
-
-            <p><strong>Mobile:</strong>
-            ${escapeHTML(booking.mobile)}</p>
-
-            <p><strong>Farm:</strong>
-            Parth Farm</p>
-
-            <p><strong>Status:</strong>
-            ${booking.status}</p>
-
-            <p><strong>Total:</strong>
-            ₹${booking.totalAmount}</p>
-
-            <p><strong>Paid:</strong>
-            ₹${booking.bookingAmount}</p>
-
-            <p><strong>Balance:</strong>
-            ₹${booking.balance}</p>
-
-            <p><strong>Notes:</strong>
-            ${escapeHTML(booking.notes || "-")}</p>
+            <p><strong>Customer:</strong> ${escapeHTML(booking.customer)}</p>
+            <p><strong>Mobile:</strong> ${escapeHTML(booking.mobile)}</p>
+            <p><strong>Status:</strong> ${booking.status}</p>
+            <p><strong>Total:</strong> ₹${booking.total_amount}</p>
+            <p><strong>Paid:</strong> ₹${booking.booking_amount}</p>
+            <p><strong>Balance:</strong> ₹${booking.balance}</p>
+            <p><strong>Payment Mode:</strong> ${escapeHTML(booking.payment_mode || "-")}</p>
+            <p><strong>Payment Date:</strong> ${booking.payment_date || "-"}</p>
+            <p><strong>Notes:</strong> ${escapeHTML(booking.notes || "-")}</p>
+            <button class="btn btn-edit" onclick="editBooking('${booking.id}'); closeModal();" style="margin-top:12px;">
+                EDIT THIS BOOKING
+            </button>
         `;
-
     } else {
-
         details.innerHTML = `
             <p style="color:#50e36b">
                 This date is AVAILABLE.
             </p>
-
-            <button
-                class="btn btn-primary"
-                onclick="selectDate('${date}')">
+            <button class="btn btn-primary" onclick="selectDate('${date}')">
                 ADD BOOKING
             </button>
         `;
@@ -1232,124 +1140,73 @@ function showDateDetails(date) {
     modal.style.display = "flex";
 }
 
-
 /* =====================================================
    SELECT DATE
 ===================================================== */
-
 function selectDate(date) {
-
     document.getElementById("bookingDate").value = date;
-
     closeModal();
-
-    document
-        .getElementById("customerName")
-        .focus();
+    document.getElementById("customerName").focus();
 }
-
 
 /* =====================================================
    UNBLOCK
 ===================================================== */
+async function unblockDate(date) {
+    try {
+        const { error } = await supabaseClient
+            .from('blocked_dates')
+            .delete()
+            .eq('date', date);
 
-function unblockDate(date) {
-
-    blockedDates =
-        blockedDates.filter(
-            d => d !== date
-        );
-
-    saveDatabase();
-
-    closeModal();
-
-    updateEverything();
+        if (error) throw error;
+        closeModal();
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+    }
 }
-
 
 /* =====================================================
    CLOSE MODAL
 ===================================================== */
-
 function closeModal() {
-
-    document.getElementById("dateModal")
-        .style.display = "none";
+    document.getElementById("dateModal").style.display = "none";
 }
-
 
 /* =====================================================
    DASHBOARD STATISTICS
 ===================================================== */
-
 function updateStats() {
+    const activeBookings = bookings.filter(b => b.status !== "Cancelled");
+    const booked = activeBookings.filter(b => b.status === "Booked");
+    const reserved = activeBookings.filter(b => b.status === "Reserved");
 
-    const activeBookings =
-        bookings.filter(
-            b => b.status !== "Cancelled"
-        );
+    const revenue = booked.reduce(
+        (sum, b) => sum + Number(b.booking_amount || 0), 0
+    );
 
-    const booked =
-        activeBookings.filter(
-            b => b.status === "Booked"
-        );
-
-    const reserved =
-        activeBookings.filter(
-            b => b.status === "Reserved"
-        );
-
-    const revenue =
-        booked.reduce(
-            (sum,b) =>
-                sum + Number(b.bookingAmount || 0),
-            0
-        );
-
-    document.getElementById(
-        "totalBookings"
-    ).textContent =
-        activeBookings.length;
-
-    document.getElementById(
-        "bookedDates"
-    ).textContent =
-        booked.length;
-
-    document.getElementById(
-        "reservedDates"
-    ).textContent =
-        reserved.length;
-
-    document.getElementById(
-        "revenue"
-    ).textContent =
-        "₹" + revenue.toLocaleString("en-IN");
+    document.getElementById("totalBookings").textContent = activeBookings.length;
+    document.getElementById("bookedDates").textContent = booked.length;
+    document.getElementById("reservedDates").textContent = reserved.length;
+    document.getElementById("revenue").textContent = "₹" + revenue.toLocaleString("en-IN");
 }
-
 
 /* =====================================================
    EVERYTHING UPDATE
 ===================================================== */
-
 function updateEverything() {
-
     renderCalendar();
-
     renderTable();
-
     updateStats();
 }
-
 
 /* =====================================================
    SECURITY
 ===================================================== */
-
 function escapeHTML(value) {
-
-    return String(value)
+    return String(value || "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -1357,15 +1214,11 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
-
 /* =====================================================
    INITIAL LOAD
 ===================================================== */
-
-updateEverything();
-
+loadData();
 </script>
 
 </body>
 </html>
-```
