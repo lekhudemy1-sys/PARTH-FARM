@@ -3,623 +3,708 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Parth Farm — Booking Manager</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Parth Farm | Booking Management</title>
 
 <!-- Supabase CDN -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-  /* =====================================================
-     TOKENS
-  ===================================================== */
-  :root {
-    --bg: #EFE9DA;
-    --surface: #FBF8F1;
-    --surface-alt: #F2EDDE;
-    --border: #DED4BC;
-    --border-soft: #E6DEC9;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
 
-    --text: #2B2620;
-    --text-muted: #766D5B;
-    --text-faint: #9A9280;
+body {
+    background: #0b0f0c;
+    color: #f2f5f2;
+}
 
-    --pine: #2F3D2A;
-    --pine-dark: #1E2818;
-    --pine-tint: #E4E9DD;
-
-    --gold: #B8862F;
-    --gold-dark: #7A5A1E;
-    --gold-tint: #F6E9C9;
-
-    --rust: #A6472D;
-    --rust-dark: #7C3320;
-    --rust-tint: #F2DDD3;
-
-    --denim: #3E5C76;
-    --denim-dark: #2C4256;
-    --denim-tint: #DCE5EC;
-
-    --grey: #8B8375;
-    --grey-dark: #5F594C;
-    --grey-tint: #E9E4D8;
-
-    --shadow-sm: 0 1px 3px rgba(43, 38, 32, 0.08);
-    --shadow-md: 0 4px 14px rgba(43, 38, 32, 0.10);
-    --shadow-lg: 0 10px 30px rgba(43, 38, 32, 0.16);
-
-    --radius-s: 8px;
-    --radius-m: 12px;
-    --radius-l: 20px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Work Sans', -apple-system, sans-serif;
-    line-height: 1.55;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; letter-spacing: -0.01em; }
-
-  button, input, select, textarea { font-family: inherit; }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-  }
-
-  :focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 2px;
-  }
-
-  /* =====================================================
-     HEADER
-  ===================================================== */
-  header {
-    background: var(--pine-dark);
-    padding: 18px 28px;
+/* HEADER */
+header {
+    background: #111811;
+    border-bottom: 1px solid #263326;
+    padding: 18px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
+}
 
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #9cff57;
+}
 
-  .brand svg { color: var(--gold); flex-shrink: 0; }
-
-  .brand-name {
-    font-size: 22px;
-    font-weight: 600;
-    color: #F7F2E4;
-  }
-
-  .admin-badge {
-    background: rgba(247, 242, 228, 0.1);
-    color: #E7E1D0;
-    padding: 6px 14px;
+.admin-badge {
+    background: #1c291c;
+    color: #9cff57;
+    padding: 7px 13px;
     border-radius: 20px;
     font-size: 12px;
-    font-weight: 500;
-    border: 1px solid rgba(247, 242, 228, 0.18);
-  }
+}
 
-  /* =====================================================
-     LAYOUT
-  ===================================================== */
-  .container { max-width: 1360px; margin: auto; padding: 28px; }
+/* MAIN */
+.container {
+    max-width: 1400px;
+    margin: auto;
+    padding: 25px;
+}
 
-  .hero {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 24px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border);
-  }
+.hero {
+    background: linear-gradient(135deg, #142015, #0d130e);
+    border: 1px solid #293729;
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 25px;
+}
 
-  .hero h1 { font-size: clamp(26px, 3.4vw, 34px); font-weight: 600; color: var(--pine-dark); }
-  .hero p { color: var(--text-muted); margin-top: 6px; max-width: 46ch; }
+.hero h1 {
+    font-size: 34px;
+    margin-bottom: 8px;
+}
 
-  .hero-date { text-align: right; color: var(--text-muted); font-size: 13px; }
-  .hero-date strong { display: block; color: var(--text); font-size: 15px; font-weight: 600; }
+.hero p {
+    color: #aab3aa;
+}
 
-  /* SETUP BANNER */
-  .setup-banner {
-    display: none;
-    background: var(--gold-tint);
-    border: 1px solid var(--gold);
-    border-radius: var(--radius-m);
-    padding: 16px 20px;
-    margin-bottom: 22px;
-    color: var(--gold-dark);
-  }
-
-  .setup-banner.show { display: block; }
-
-  .setup-banner strong { display: block; font-size: 14px; margin-bottom: 4px; color: var(--rust-dark); }
-  .setup-banner p { font-size: 13px; color: var(--gold-dark); }
-  .setup-banner code {
-    background: rgba(122, 90, 30, 0.1);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 12px;
-  }
-
-  /* STATS */
-  .stats {
+/* CARDS */
+.stats {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-  }
+    gap: 15px;
+    margin-bottom: 25px;
+}
 
-  .stat-card {
-    background: var(--surface);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--radius-m);
-    padding: 18px 20px;
-    box-shadow: var(--shadow-sm);
-    border-left: 3px solid var(--pine);
-  }
+.card {
+    background: #111711;
+    border: 1px solid #263126;
+    border-radius: 15px;
+    padding: 20px;
+}
 
-  .stat-card.c-rust { border-left-color: var(--rust); }
-  .stat-card.c-gold { border-left-color: var(--gold); }
-  .stat-card.c-denim { border-left-color: var(--denim); }
-
-  .stat-label { color: var(--text-muted); font-size: 12.5px; font-weight: 500; }
-  .stat-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; margin-top: 6px; color: var(--pine-dark); }
-
-  /* GRID */
-  .grid { display: grid; grid-template-columns: 1.45fr 0.8fr; gap: 18px; }
-
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border-soft);
-    border-radius: var(--radius-l);
-    padding: 22px;
-    box-shadow: var(--shadow-sm);
-  }
-
-  .panel h2 { font-size: 19px; font-weight: 600; color: var(--pine-dark); margin-bottom: 16px; }
-
-  /* CALENDAR */
-  .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-  .month-title { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; color: var(--pine-dark); }
-
-  .calendar-buttons { display: flex; gap: 6px; }
-  .calendar-buttons button {
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 7px 12px;
-    border-radius: var(--radius-s);
-    cursor: pointer;
+.card-title {
+    color: #9aa39b;
     font-size: 13px;
-    font-weight: 500;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .calendar-buttons button:hover { background: var(--pine-tint); border-color: var(--pine); }
+}
 
-  .weekdays, .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+.card-value {
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 8px;
+    color: #9cff57;
+}
 
-  .weekdays div { text-align: center; color: var(--text-faint); font-size: 11.5px; font-weight: 600; padding: 6px 0 10px; }
+/* GRID */
+.grid {
+    display: grid;
+    grid-template-columns: 1.4fr 0.8fr;
+    gap: 20px;
+}
 
-  .day {
-    min-height: 78px;
-    border: 1px solid var(--border-soft);
-    border-left: 3px solid var(--border);
-    border-radius: var(--radius-s);
-    padding: 8px 9px;
-    cursor: pointer;
-    background: var(--surface);
+/* PANEL */
+.panel {
+    background: #111711;
+    border: 1px solid #263126;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.panel h2 {
+    margin-bottom: 18px;
+}
+
+/* CALENDAR */
+.calendar-header {
     display: flex;
-    flex-direction: column;
     justify-content: space-between;
-    transition: box-shadow 0.15s, border-color 0.15s;
-  }
+    align-items: center;
+    margin-bottom: 18px;
+}
 
-  .day:hover { box-shadow: var(--shadow-sm); border-color: var(--pine); }
-  .day.empty { visibility: hidden; pointer-events: none; }
+.month-title {
+    font-size: 21px;
+    font-weight: bold;
+}
 
-  .day-number { font-size: 13px; font-weight: 600; color: var(--text); }
-  .day-status { font-size: 10.5px; color: var(--text-muted); font-weight: 500; }
+.calendar-buttons button {
+    background: #1b241b;
+    border: 1px solid #344134;
+    color: white;
+    padding: 8px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-  .day.is-today { outline: 1.5px solid var(--pine); outline-offset: -1px; }
-  .day.is-available { border-left-color: var(--pine); }
-  .day.is-reserved { border-left-color: var(--gold); background: var(--gold-tint); }
-  .day.is-reserved .day-status { color: var(--gold-dark); }
-  .day.is-booked { border-left-color: var(--rust); background: var(--rust-tint); }
-  .day.is-booked .day-status { color: var(--rust-dark); }
-  .day.is-blocked { border-left-color: var(--grey); background: var(--grey-tint); }
-  .day.is-blocked .day-status { color: var(--grey-dark); }
+.calendar-buttons button:hover {
+    background: #293629;
+}
 
-  /* LEGEND */
-  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 18px; }
-  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-muted); }
-  .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
-  .legend-dot.pine { background: var(--pine); }
-  .legend-dot.gold { background: var(--gold); }
-  .legend-dot.rust { background: var(--rust); }
-  .legend-dot.grey { background: var(--grey); }
+.weekdays,
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 7px;
+}
 
-  /* FORM */
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .form-group { margin-bottom: 14px; }
+.weekdays div {
+    text-align: center;
+    color: #7f897f;
+    font-size: 12px;
+    padding: 8px;
+}
 
-  label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+.day {
+    min-height: 75px;
+    border: 1px solid #283128;
+    border-radius: 9px;
+    padding: 8px;
+    cursor: pointer;
+    background: #0d120e;
+    position: relative;
+}
 
-  input, select, textarea {
+.day:hover {
+    border-color: #9cff57;
+}
+
+.day.empty {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.day-number {
+    font-size: 13px;
+}
+
+.today {
+    border: 2px solid #9cff57;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 10px;
+}
+
+.available {
+    background: #18301b;
+}
+
+.available .status-dot {
+    background: #50e36b;
+}
+
+.reserved {
+    background: #302c16;
+    border-color: #827324;
+}
+
+.reserved .status-dot {
+    background: #e6c84c;
+}
+
+.booked {
+    background: #35191b;
+    border-color: #713034;
+}
+
+.booked .status-dot {
+    background: #ff5d67;
+}
+
+.blocked {
+    background: #252525;
+    border-color: #555;
+}
+
+.blocked .status-dot {
+    background: #999;
+}
+
+.day-status {
+    font-size: 9px;
+    color: #a7aea7;
+    margin-top: 5px;
+}
+
+/* LEGEND */
+.legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 18px;
+    color: #a6afa6;
+    font-size: 12px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* FORM */
+.form-group {
+    margin-bottom: 14px;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    color: #aab3aa;
+    margin-bottom: 6px;
+}
+
+input,
+select,
+textarea {
     width: 100%;
-    background: var(--surface-alt);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-s);
-    color: var(--text);
-    padding: 10px 12px;
-    font-size: 14px;
+    background: #0b0f0c;
+    border: 1px solid #303b30;
+    border-radius: 8px;
+    color: white;
+    padding: 11px;
     outline: none;
-    transition: border-color 0.15s;
-  }
+}
 
-  input:focus, select:focus, textarea:focus { border-color: var(--pine); }
-  textarea { resize: vertical; }
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #9cff57;
+}
 
-  .btn {
+textarea {
+    resize: vertical;
+}
+
+.btn {
     width: 100%;
     padding: 12px;
     border: none;
-    border-radius: var(--radius-s);
+    border-radius: 9px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    margin-top: 4px;
-    transition: filter 0.15s, opacity 0.15s;
-  }
-  .btn:hover { filter: brightness(1.04); }
-  .btn:active { filter: brightness(0.97); }
-  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    font-weight: bold;
+    margin-top: 5px;
+}
 
-  .btn-primary { background: var(--pine); color: #F7F2E4; }
-  .btn-secondary { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
-  .btn-danger { background: var(--rust-tint); color: var(--rust-dark); border: 1px solid var(--rust); }
-  .btn-edit { background: var(--denim-tint); color: var(--denim-dark); border: 1px solid var(--denim); }
+.btn-primary {
+    background: #9cff57;
+    color: #071006;
+}
 
-  .hint { font-size: 12px; color: var(--text-faint); margin-top: 8px; }
+.btn-danger {
+    background: #562126;
+    color: #ff8790;
+}
 
-  /* DATABASE TABLE */
-  .database { margin-top: 22px; }
-  .table-container { overflow-x: auto; border-radius: var(--radius-m); }
+.btn-secondary {
+    background: #202920;
+    color: white;
+}
 
-  table { width: 100%; border-collapse: collapse; min-width: 1080px; }
+.btn-edit {
+    background: #1e3a5f;
+    color: #7eb8ff;
+}
 
-  th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-soft); text-align: left; font-size: 12.5px; }
-  th { color: var(--pine-dark); background: var(--pine-tint); font-weight: 600; }
-  td { color: var(--text); }
-  tbody tr:hover { background: var(--surface-alt); }
+/* DATABASE */
+.database {
+    margin-top: 25px;
+}
 
-  .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
-  .status-pill.is-booked { background: var(--rust-tint); color: var(--rust-dark); }
-  .status-pill.is-reserved { background: var(--gold-tint); color: var(--gold-dark); }
-  .status-pill.is-cancelled { background: var(--grey-tint); color: var(--grey-dark); }
+.table-container {
+    overflow-x: auto;
+}
 
-  .action-btn {
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+th,
+td {
+    padding: 12px;
+    border-bottom: 1px solid #293129;
+    text-align: left;
+    font-size: 12px;
+}
+
+th {
+    color: #9cff57;
+    background: #151c15;
+}
+
+td {
+    color: #cbd0cb;
+}
+
+.status {
+    padding: 5px 9px;
+    border-radius: 12px;
+    font-size: 10px;
+}
+
+.status.booked {
+    color: #ff7882;
+}
+
+.status.reserved {
+    color: #e6c84c;
+}
+
+.status.cancelled {
+    color: #888;
+}
+
+.action-btn {
     border: none;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 6px 9px;
     cursor: pointer;
     margin-right: 4px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .book-btn { background: var(--pine); color: #F7F2E4; }
-  .cancel-btn { background: var(--rust-tint); color: var(--rust-dark); }
-  .edit-btn { background: var(--denim-tint); color: var(--denim-dark); }
+    font-size: 10px;
+}
 
-  .empty-row td { text-align: center; color: var(--text-faint); padding: 34px; font-size: 13px; }
+.book-btn {
+    background: #9cff57;
+    color: #071006;
+}
 
-  /* MODALS */
-  .modal {
+.cancel-btn {
+    background: #542027;
+    color: #ff8990;
+}
+
+.edit-btn {
+    background: #1e3a5f;
+    color: #7eb8ff;
+}
+
+/* MODAL */
+.modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(30, 27, 20, 0.55);
+    background: rgba(0,0,0,.75);
     z-index: 100;
     justify-content: center;
     align-items: center;
     padding: 20px;
-  }
-  .modal.show { display: flex; }
+}
 
-  .modal-content {
+.modal-content {
     width: 100%;
-    max-width: 460px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-l);
-    padding: 24px;
+    max-width: 480px;
+    background: #111711;
+    border: 1px solid #344134;
+    border-radius: 18px;
+    padding: 22px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-  }
+}
 
-  .modal-content h3 { font-size: 18px; margin-bottom: 16px; color: var(--pine-dark); }
+.modal-content h3 {
+    margin-bottom: 15px;
+}
 
-  .close { float: right; cursor: pointer; color: var(--text-faint); font-size: 20px; line-height: 1; }
-  .close:hover { color: var(--text); }
+.close {
+    float: right;
+    cursor: pointer;
+    color: #aaa;
+    font-size: 20px;
+}
 
-  .detail-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border-soft); font-size: 13.5px; }
-  .detail-row span:first-child { color: var(--text-muted); }
-  .detail-row span:last-child { font-weight: 500; text-align: right; }
+/* MOBILE */
+@media(max-width: 900px) {
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
 
-  .confirm-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .grid {
+        grid-template-columns: 1fr;
+    }
+}
 
-  /* TOASTS */
-  #toastContainer {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    z-index: 200;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    max-width: 320px;
-  }
+@media(max-width: 600px) {
+    header {
+        padding: 15px;
+    }
 
-  .toast {
-    background: var(--pine-dark);
-    color: #F7F2E4;
-    padding: 12px 16px;
-    border-radius: var(--radius-s);
-    font-size: 13px;
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    transform: translateY(-8px);
-    transition: opacity 0.25s, transform 0.25s;
-  }
-  .toast.show { opacity: 1; transform: translateY(0); }
-  .toast.toast-error { background: var(--rust-dark); }
-  .toast.toast-success { background: var(--pine-dark); }
+    .container {
+        padding: 12px;
+    }
 
-  /* MOBILE */
-  @media (max-width: 980px) {
-    .stats { grid-template-columns: repeat(2, 1fr); }
-    .grid { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
-  }
+    .hero h1 {
+        font-size: 26px;
+    }
 
-  @media (max-width: 600px) {
-    header { padding: 14px 16px; }
-    .container { padding: 14px; }
-    .hero { flex-direction: column; align-items: flex-start; }
-    .hero-date { text-align: left; }
-    .panel { padding: 16px; }
-    .day { min-height: 58px; padding: 6px; }
-    .day-status { font-size: 8.5px; }
-  }
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .card-value {
+        font-size: 22px;
+    }
+
+    .day {
+        min-height: 55px;
+        padding: 5px;
+    }
+
+    .day-status {
+        font-size: 7px;
+    }
+
+    .status-dot {
+        margin-top: 7px;
+    }
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <div class="brand">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M4 20c8-1 14-7 15-15-8 1-14 7-15 15z"/>
-      <path d="M6 18c3-4 6-7 11-11"/>
-    </svg>
-    <span class="brand-name">Parth Farm</span>
-  </div>
-  <div class="admin-badge">Admin panel</div>
+    <div class="logo">PARTH FARM</div>
+    <div class="admin-badge">ADMIN PANEL</div>
 </header>
 
 <div class="container">
 
-  <section class="hero">
-    <div>
-      <h1>Booking manager</h1>
-      <p>See what's booked, confirm reservations, and keep the calendar up to date.</p>
-    </div>
-    <div class="hero-date">
-      Today
-      <strong id="todayLabel"></strong>
-    </div>
-  </section>
-
-  <div class="setup-banner" id="setupBanner">
-    <strong id="setupBannerTitle">Connect your Supabase project</strong>
-    <p id="setupBannerText">
-      This page can't reach a database yet. Open the file and replace <code>SUPABASE_URL</code> and
-      <code>SUPABASE_ANON_KEY</code> near the top of the script with the values from your Supabase
-      project settings, then reload the page.
-    </p>
-  </div>
-
-  <!-- STATS -->
-  <section class="stats">
-    <div class="stat-card">
-      <div class="stat-label">Total bookings</div>
-      <div class="stat-value" id="totalBookings">0</div>
-    </div>
-    <div class="stat-card c-rust">
-      <div class="stat-label">Booked dates</div>
-      <div class="stat-value" id="bookedDates">0</div>
-    </div>
-    <div class="stat-card c-gold">
-      <div class="stat-label">Reserved dates</div>
-      <div class="stat-value" id="reservedDates">0</div>
-    </div>
-    <div class="stat-card c-denim">
-      <div class="stat-label">Revenue collected</div>
-      <div class="stat-value" id="revenue">₹0</div>
-    </div>
-  </section>
-
-  <div class="grid">
-
-    <!-- CALENDAR -->
-    <section class="panel">
-      <div class="calendar-header">
-        <div class="month-title" id="monthTitle"></div>
-        <div class="calendar-buttons">
-          <button onclick="previousMonth()" aria-label="Previous month">‹</button>
-          <button onclick="goToday()">Today</button>
-          <button onclick="nextMonth()" aria-label="Next month">›</button>
-        </div>
-      </div>
-
-      <div class="weekdays">
-        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-      </div>
-
-      <div class="calendar" id="calendar"></div>
-
-      <div class="legend">
-        <div class="legend-item"><span class="legend-dot pine"></span>Available</div>
-        <div class="legend-item"><span class="legend-dot gold"></span>Reserved</div>
-        <div class="legend-item"><span class="legend-dot rust"></span>Booked</div>
-        <div class="legend-item"><span class="legend-dot grey"></span>Blocked</div>
-      </div>
+    <section class="hero">
+        <h1>Parth Farm Booking Management</h1>
+        <p>Manage farm availability, reservations and customer bookings.</p>
     </section>
 
-    <!-- BOOKING FORM -->
-    <section class="panel">
-      <h2 id="formTitle">Add booking</h2>
+    <!-- STATISTICS -->
+    <section class="stats">
 
-      <form id="bookingForm">
-        <input type="hidden" id="editBookingId">
-
-        <div class="form-group">
-          <label for="customerName">Customer name</label>
-          <input type="text" id="customerName" required>
+        <div class="card">
+            <div class="card-title">Total Bookings</div>
+            <div class="card-value" id="totalBookings">0</div>
         </div>
 
-        <div class="form-group">
-          <label for="mobile">Mobile number</label>
-          <input type="tel" id="mobile" required>
+        <div class="card">
+            <div class="card-title">Booked Dates</div>
+            <div class="card-value" id="bookedDates">0</div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="bookingDate">Booking date</label>
-            <input type="date" id="bookingDate" required>
-          </div>
-          <div class="form-group">
-            <label for="bookingStatus">Status</label>
-            <select id="bookingStatus">
-              <option value="Reserved">Reserved</option>
-              <option value="Booked">Booked</option>
-            </select>
-          </div>
+        <div class="card">
+            <div class="card-title">Reserved Dates</div>
+            <div class="card-value" id="reservedDates">0</div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="totalAmount">Total amount (₹)</label>
-            <input type="number" id="totalAmount" min="0" value="0">
-          </div>
-          <div class="form-group">
-            <label for="bookingAmount">Advance paid (₹)</label>
-            <input type="number" id="bookingAmount" min="0" value="0">
-          </div>
+        <div class="card">
+            <div class="card-title">Revenue</div>
+            <div class="card-value" id="revenue">₹0</div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="paymentMode">Payment mode</label>
-            <select id="paymentMode">
-              <option value="">Select mode</option>
-              <option value="Cash">Cash</option>
-              <option value="UPI">UPI</option>
-              <option value="Bank Transfer">Bank transfer</option>
-              <option value="Card">Card</option>
-              <option value="Cheque">Cheque</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="paymentDate">Payment date</label>
-            <input type="date" id="paymentDate">
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="notes">Notes</label>
-          <textarea id="notes" rows="3"></textarea>
-        </div>
-
-        <button class="btn btn-primary" type="submit" id="submitBtn">Save booking</button>
-        <button class="btn btn-secondary" type="button" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">Cancel edit</button>
-      </form>
-
-      <button class="btn btn-secondary" onclick="blockDate()" style="margin-top:10px;">Block this date</button>
-      <p class="hint">Blocks the date currently selected above.</p>
     </section>
 
-  </div>
+    <div class="grid">
 
-  <!-- DATABASE -->
-  <section class="panel database">
-    <h2>Booking records</h2>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th><th>Customer</th><th>Mobile</th><th>Date</th><th>Status</th>
-            <th>Total</th><th>Paid</th><th>Balance</th><th>Payment mode</th>
-            <th>Payment date</th><th>Notes</th><th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="bookingTable"></tbody>
-      </table>
+        <!-- CALENDAR -->
+        <section class="panel">
+
+            <div class="calendar-header">
+
+                <div class="month-title" id="monthTitle"></div>
+
+                <div class="calendar-buttons">
+                    <button onclick="previousMonth()">‹</button>
+                    <button onclick="goToday()">Today</button>
+                    <button onclick="nextMonth()">›</button>
+                </div>
+
+            </div>
+
+            <div class="weekdays">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+
+            <div class="calendar" id="calendar"></div>
+
+            <div class="legend">
+
+                <div class="legend-item">
+                    <span>🟢</span> Available
+                </div>
+
+                <div class="legend-item">
+                    <span>🟡</span> Reserved
+                </div>
+
+                <div class="legend-item">
+                    <span>🔴</span> Booked
+                </div>
+
+                <div class="legend-item">
+                    <span>⚫</span> Blocked
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- BOOKING FORM -->
+        <section class="panel">
+
+            <h2 id="formTitle">Add Booking</h2>
+
+            <form id="bookingForm">
+
+                <input type="hidden" id="editBookingId">
+
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" id="customerName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="mobile" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Booking Date</label>
+                    <input type="date" id="bookingDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="bookingStatus">
+                        <option value="Reserved">Reserved</option>
+                        <option value="Booked">Booked</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Total Amount (₹)</label>
+                    <input type="number" id="totalAmount" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Booking Amount / Advance (₹)</label>
+                    <input type="number" id="bookingAmount" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Mode</label>
+                    <select id="paymentMode">
+                        <option value="">Select Mode</option>
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Card">Card</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Date</label>
+                    <input type="date" id="paymentDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" rows="3"></textarea>
+                </div>
+
+                <button class="btn btn-primary" type="submit" id="submitBtn">
+                    SAVE BOOKING
+                </button>
+
+                <button class="btn btn-secondary" type="button" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">
+                    CANCEL EDIT
+                </button>
+
+            </form>
+
+            <button
+                class="btn btn-secondary"
+                onclick="blockDate()" style="margin-top:10px;">
+                BLOCK A DATE
+            </button>
+
+        </section>
+
     </div>
-  </section>
+
+    <!-- DATABASE -->
+    <section class="panel database">
+
+        <h2>Booking Database</h2>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Customer</th>
+                        <th>Mobile</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Paid</th>
+                        <th>Balance</th>
+                        <th>Payment Mode</th>
+                        <th>Payment Date</th>
+                        <th>Notes</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody id="bookingTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
 
 </div>
 
 <!-- DATE MODAL -->
 <div class="modal" id="dateModal">
-  <div class="modal-content">
-    <span class="close" onclick="closeModal()">×</span>
-    <h3 id="modalDate"></h3>
-    <div id="modalDetails"></div>
-  </div>
-</div>
 
-<!-- CONFIRM MODAL -->
-<div class="modal" id="confirmModal">
-  <div class="modal-content">
-    <span class="close" onclick="closeConfirm()">×</span>
-    <h3>Please confirm</h3>
-    <p id="confirmMessage" style="color: var(--text-muted); font-size: 14px;"></p>
-    <div class="confirm-actions">
-      <button class="btn btn-secondary" onclick="closeConfirm()">Go back</button>
-      <button class="btn btn-danger" id="confirmYesBtn">Yes, continue</button>
+    <div class="modal-content">
+
+        <span class="close" onclick="closeModal()">×</span>
+
+        <h3 id="modalDate"></h3>
+
+        <div id="modalDetails"></div>
+
     </div>
-  </div>
-</div>
 
-<div id="toastContainer"></div>
+</div>
 
 <script>
 /* =====================================================
-   SUPABASE CONFIG — REPLACE THESE WITH YOUR VALUES
+   SUPABASE CONFIG (Your credentials already filled)
 ===================================================== */
-const SUPABASE_URL = "https://bolwtbueazlfzeeyggir.supabase.co";       // e.g. https://xxxxx.supabase.co
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvbHd0YnVlYXpsZnplZXlnZ2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTgxNTAsImV4cCI6MjEwNTI5NDE1MH0.IYGWTYCCIr_S5Gv66AxuRn5RLk_XzLyCTm-FwUM8bXs";     // from Project Settings → API
+const SUPABASE_URL = "https://bolwtbueazlfzeeyggir.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvbHd0YnVlYXpsZnplZXlnZ2lyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MTgxNTAsImV4cCI6MjEwNTI5NDE1MH0.IYGWTYCCIr_S5Gv66AxuRn5RLk_XzLyCTm-FwUM8bXs";
+
+const { createClient } = supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* =====================================================
    STATE
@@ -628,529 +713,511 @@ let bookings = [];
 let blockedDates = [];
 let currentDate = new Date();
 let isEditing = false;
-let supabaseClient = null;
-let supabaseReady = false;
-
-/* =====================================================
-   SUPABASE INIT (fixed: never let a bad key crash the page)
-   Previously, createClient() threw immediately when the URL was
-   still the placeholder text, which stopped the entire script —
-   including the calendar render and the form's submit listener —
-   from ever running. Everything below is now defensive: the page
-   always renders, and Supabase is treated as optional until it's
-   configured correctly.
-===================================================== */
-function isPlaceholder(value) {
-  return !value || value.trim() === "" || value.includes("YOUR_");
-}
-
-function initSupabase() {
-  if (isPlaceholder(SUPABASE_URL) || isPlaceholder(SUPABASE_ANON_KEY)) {
-    return false;
-  }
-  try {
-    const { createClient } = supabase;
-    supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return true;
-  } catch (err) {
-    console.error("Supabase failed to initialize:", err);
-    return false;
-  }
-}
-
-function showSetupBanner(title, text) {
-  document.getElementById("setupBannerTitle").textContent = title;
-  document.getElementById("setupBannerText").textContent = text;
-  document.getElementById("setupBanner").classList.add("show");
-}
-
-function hideSetupBanner() {
-  document.getElementById("setupBanner").classList.remove("show");
-}
-
-/* =====================================================
-   TOASTS (replaces alert())
-===================================================== */
-function showToast(message, type = "info") {
-  const container = document.getElementById("toastContainer");
-  const toast = document.createElement("div");
-  toast.className = "toast toast-" + type;
-  toast.textContent = message;
-  container.appendChild(toast);
-  (window.requestAnimationFrame || setTimeout)(() => toast.classList.add("show"));
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, 3800);
-}
-
-/* =====================================================
-   CONFIRM MODAL (replaces confirm())
-===================================================== */
-function showConfirm(message, onConfirm) {
-  document.getElementById("confirmMessage").textContent = message;
-  const modal = document.getElementById("confirmModal");
-  const yesBtn = document.getElementById("confirmYesBtn");
-  const freshBtn = yesBtn.cloneNode(true);
-  yesBtn.parentNode.replaceChild(freshBtn, yesBtn);
-  freshBtn.addEventListener("click", () => {
-    closeConfirm();
-    onConfirm();
-  });
-  modal.classList.add("show");
-}
-
-function closeConfirm() {
-  document.getElementById("confirmModal").classList.remove("show");
-}
 
 /* =====================================================
    LOAD DATA FROM SUPABASE
 ===================================================== */
 async function loadData() {
-  if (!supabaseReady) {
-    showSetupBanner(
-      "Connect your Supabase project",
-      "This page can't reach a database yet. Open the file and replace SUPABASE_URL and SUPABASE_ANON_KEY near the top of the script with the values from your Supabase project settings, then reload the page."
-    );
-    updateEverything();
-    return;
-  }
+    try {
+        // Load bookings
+        const { data: bookingsData, error: bookingsError } = await supabaseClient
+            .from('bookings')
+            .select('*')
+            .order('date', { ascending: true });
 
-  try {
-    const { data: bookingsData, error: bookingsError } = await supabaseClient
-      .from("bookings")
-      .select("*")
-      .order("date", { ascending: true });
+        if (bookingsError) throw bookingsError;
+        bookings = bookingsData || [];
 
-    if (bookingsError) throw bookingsError;
-    bookings = bookingsData || [];
+        // Load blocked dates
+        const { data: blockedData, error: blockedError } = await supabaseClient
+            .from('blocked_dates')
+            .select('date');
 
-    const { data: blockedData, error: blockedError } = await supabaseClient
-      .from("blocked_dates")
-      .select("date");
+        if (blockedError) throw blockedError;
+        blockedDates = (blockedData || []).map(b => b.date);
 
-    if (blockedError) throw blockedError;
-    blockedDates = (blockedData || []).map(b => b.date);
-
-    hideSetupBanner();
-    updateEverything();
-  } catch (err) {
-    console.error("Load error:", err);
-    showSetupBanner(
-      "Couldn't load your data",
-      "Check that your Supabase URL and key are correct, and that the bookings and blocked_dates tables exist with row-level-security policies that allow reads. Details are in the browser console."
-    );
-    updateEverything();
-  }
+        updateEverything();
+    } catch (err) {
+        console.error("Load error:", err);
+        alert("Failed to load data from Supabase.\n\nError: " + err.message + "\n\nMake sure you have created the tables (bookings + blocked_dates) and enabled the policies.");
+    }
 }
 
 /* =====================================================
    DATE FORMAT
 ===================================================== */
 function formatDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
 }
 
 /* =====================================================
    CALENDAR
-   Fixed: this now runs on every page load regardless of whether
-   Supabase is configured, so the grid is never blank.
 ===================================================== */
 function renderCalendar() {
-  const calendar = document.getElementById("calendar");
-  calendar.innerHTML = "";
+    const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
 
-  const year = currentDate.getFullYear();
-  const month = currentDate.getMonth();
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  document.getElementById("monthTitle").textContent =
-    new Date(year, month).toLocaleString("en-IN", { month: "long", year: "numeric" });
+    document.getElementById("monthTitle").textContent =
+        new Date(year, month).toLocaleString("en-IN", {
+            month: "long",
+            year: "numeric"
+        });
 
-  for (let i = 0; i < firstDay; i++) {
-    const empty = document.createElement("div");
-    empty.className = "day empty";
-    calendar.appendChild(empty);
-  }
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const date = new Date(year, month, day);
-    const dateString = formatDate(date);
-    const cell = document.createElement("div");
-
-    let status = "Available";
-    if (blockedDates.includes(dateString)) {
-      status = "Blocked";
-    } else {
-      const booking = bookings.find(b => b.date === dateString && b.status !== "Cancelled");
-      if (booking) status = booking.status;
+    for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        calendar.appendChild(empty);
     }
 
-    cell.className = "day is-" + status.toLowerCase();
-    if (dateString === formatDate(new Date())) cell.classList.add("is-today");
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateString = formatDate(date);
+        const cell = document.createElement("div");
+        cell.className = "day";
 
-    cell.innerHTML = `
-      <div class="day-number">${day}</div>
-      <div class="day-status">${status}</div>
-    `;
+        if (dateString === formatDate(new Date())) {
+            cell.classList.add("today");
+        }
 
-    cell.onclick = () => showDateDetails(dateString);
-    calendar.appendChild(cell);
-  }
+        let status = "Available";
+
+        if (blockedDates.includes(dateString)) {
+            status = "Blocked";
+        } else {
+            const booking = bookings.find(
+                b => b.date === dateString && b.status !== "Cancelled"
+            );
+            if (booking) status = booking.status;
+        }
+
+        cell.classList.add(status.toLowerCase());
+
+        cell.innerHTML = `
+            <div class="day-number">${day}</div>
+            <div class="status-dot"></div>
+            <div class="day-status">${status}</div>
+        `;
+
+        cell.onclick = () => showDateDetails(dateString);
+        calendar.appendChild(cell);
+    }
 }
 
 /* =====================================================
    MONTH NAVIGATION
 ===================================================== */
-function previousMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
-function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
-function goToday() { currentDate = new Date(); renderCalendar(); }
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+function goToday() {
+    currentDate = new Date();
+    renderCalendar();
+}
 
 /* =====================================================
    ADD / UPDATE BOOKING
 ===================================================== */
-async function handleBookingSubmit(e) {
-  e.preventDefault();
+document.getElementById("bookingForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-  if (!supabaseReady) {
-    showToast("Connect Supabase before saving bookings — see the note above.", "error");
-    return;
-  }
+    const name = document.getElementById("customerName").value.trim();
+    const mobile = document.getElementById("mobile").value.trim();
+    const date = document.getElementById("bookingDate").value;
+    const status = document.getElementById("bookingStatus").value;
+    const total = Number(document.getElementById("totalAmount").value);
+    const bookingAmount = Number(document.getElementById("bookingAmount").value);
+    const paymentMode = document.getElementById("paymentMode").value;
+    const paymentDate = document.getElementById("paymentDate").value || null;
+    const notes = document.getElementById("notes").value.trim();
+    const editId = document.getElementById("editBookingId").value;
 
-  const name = document.getElementById("customerName").value.trim();
-  const mobile = document.getElementById("mobile").value.trim();
-  const date = document.getElementById("bookingDate").value;
-  const status = document.getElementById("bookingStatus").value;
-  const total = Number(document.getElementById("totalAmount").value);
-  const bookingAmount = Number(document.getElementById("bookingAmount").value);
-  const paymentMode = document.getElementById("paymentMode").value;
-  const paymentDate = document.getElementById("paymentDate").value || null;
-  const notes = document.getElementById("notes").value.trim();
-  const editId = document.getElementById("editBookingId").value;
-
-  if (!date) {
-    showToast("Please select a date.", "error");
-    return;
-  }
-
-  if (bookingAmount > total) {
-    showToast("Advance paid can't be more than the total amount.", "error");
-    return;
-  }
-
-  const currentEditDate = bookings.find(b => b.id === editId)?.date;
-  if (!isEditing || date !== currentEditDate) {
-    const existing = bookings.find(b => b.date === date && b.status !== "Cancelled" && b.id !== editId);
-    if (existing) {
-      showToast("This date is already " + existing.status.toLowerCase() + ".", "error");
-      return;
-    }
-    if (blockedDates.includes(date)) {
-      showToast("This date is blocked.", "error");
-      return;
-    }
-  }
-
-  const payload = {
-    customer: name,
-    mobile: mobile,
-    farm: "Parth Farm",
-    date: date,
-    status: status,
-    total_amount: total,
-    booking_amount: bookingAmount,
-    balance: total - bookingAmount,
-    payment_mode: paymentMode || null,
-    payment_date: paymentDate,
-    notes: notes || null
-  };
-
-  try {
-    if (isEditing && editId) {
-      const { error } = await supabaseClient.from("bookings").update(payload).eq("id", editId);
-      if (error) throw error;
-      showToast("Booking updated.", "success");
-    } else {
-      const { error } = await supabaseClient.from("bookings").insert([payload]);
-      if (error) throw error;
-      showToast("Booking saved.", "success");
+    if (!date) {
+        alert("Please select a date.");
+        return;
     }
 
-    document.getElementById("bookingForm").reset();
-    cancelEdit();
-    await loadData();
-  } catch (err) {
-    console.error(err);
-    showToast("Error saving booking: " + err.message, "error");
-  }
-}
+    if (bookingAmount > total) {
+        alert("Booking amount cannot be greater than total amount.");
+        return;
+    }
+
+    // Check conflicts only when adding new or changing date
+    if (!isEditing || (isEditing && date !== bookings.find(b => b.id === editId)?.date)) {
+        const existing = bookings.find(
+            b => b.date === date && b.status !== "Cancelled" && b.id !== editId
+        );
+        if (existing) {
+            alert("This date is already " + existing.status.toLowerCase() + ".");
+            return;
+        }
+        if (blockedDates.includes(date)) {
+            alert("This date is blocked.");
+            return;
+        }
+    }
+
+    const payload = {
+        customer: name,
+        mobile: mobile,
+        farm: "Parth Farm",
+        date: date,
+        status: status,
+        total_amount: total,
+        booking_amount: bookingAmount,
+        balance: total - bookingAmount,
+        payment_mode: paymentMode || null,
+        payment_date: paymentDate,
+        notes: notes || null
+    };
+
+    try {
+        if (isEditing && editId) {
+            // UPDATE
+            const { error } = await supabaseClient
+                .from('bookings')
+                .update(payload)
+                .eq('id', editId);
+
+            if (error) throw error;
+            alert("Booking updated successfully.");
+        } else {
+            // INSERT
+            const { error } = await supabaseClient
+                .from('bookings')
+                .insert([payload]);
+
+            if (error) throw error;
+            alert("Booking saved successfully.");
+        }
+
+        this.reset();
+        cancelEdit();
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error saving booking: " + err.message);
+    }
+});
 
 /* =====================================================
    EDIT BOOKING
 ===================================================== */
 function editBooking(id) {
-  const booking = bookings.find(b => b.id === id);
-  if (!booking) return;
+    const booking = bookings.find(b => b.id === id);
+    if (!booking) return;
 
-  isEditing = true;
-  document.getElementById("editBookingId").value = booking.id;
-  document.getElementById("customerName").value = booking.customer || "";
-  document.getElementById("mobile").value = booking.mobile || "";
-  document.getElementById("bookingDate").value = booking.date || "";
-  document.getElementById("bookingStatus").value = booking.status || "Reserved";
-  document.getElementById("totalAmount").value = booking.total_amount || 0;
-  document.getElementById("bookingAmount").value = booking.booking_amount || 0;
-  document.getElementById("paymentMode").value = booking.payment_mode || "";
-  document.getElementById("paymentDate").value = booking.payment_date || "";
-  document.getElementById("notes").value = booking.notes || "";
+    isEditing = true;
+    document.getElementById("editBookingId").value = booking.id;
+    document.getElementById("customerName").value = booking.customer || "";
+    document.getElementById("mobile").value = booking.mobile || "";
+    document.getElementById("bookingDate").value = booking.date || "";
+    document.getElementById("bookingStatus").value = booking.status || "Reserved";
+    document.getElementById("totalAmount").value = booking.total_amount || 0;
+    document.getElementById("bookingAmount").value = booking.booking_amount || 0;
+    document.getElementById("paymentMode").value = booking.payment_mode || "";
+    document.getElementById("paymentDate").value = booking.payment_date || "";
+    document.getElementById("notes").value = booking.notes || "";
 
-  document.getElementById("formTitle").textContent = "Edit booking";
-  document.getElementById("submitBtn").textContent = "Update booking";
-  document.getElementById("cancelEditBtn").style.display = "block";
+    document.getElementById("formTitle").textContent = "Edit Booking";
+    document.getElementById("submitBtn").textContent = "UPDATE BOOKING";
+    document.getElementById("cancelEditBtn").style.display = "block";
 
-  document.getElementById("bookingForm").scrollIntoView({ behavior: "smooth" });
+    // Scroll to form
+    document.getElementById("bookingForm").scrollIntoView({ behavior: "smooth" });
 }
 
 function cancelEdit() {
-  isEditing = false;
-  document.getElementById("editBookingId").value = "";
-  document.getElementById("bookingForm").reset();
-  document.getElementById("formTitle").textContent = "Add booking";
-  document.getElementById("submitBtn").textContent = "Save booking";
-  document.getElementById("cancelEditBtn").style.display = "none";
+    isEditing = false;
+    document.getElementById("editBookingId").value = "";
+    document.getElementById("bookingForm").reset();
+    document.getElementById("formTitle").textContent = "Add Booking";
+    document.getElementById("submitBtn").textContent = "SAVE BOOKING";
+    document.getElementById("cancelEditBtn").style.display = "none";
 }
 
 /* =====================================================
    BLOCK DATE
 ===================================================== */
 async function blockDate() {
-  if (!supabaseReady) {
-    showToast("Connect Supabase before blocking dates — see the note above.", "error");
-    return;
-  }
+    const date = document.getElementById("bookingDate").value;
+    if (!date) {
+        alert("Select a date first.");
+        return;
+    }
 
-  const date = document.getElementById("bookingDate").value;
-  if (!date) {
-    showToast("Select a date first.", "error");
-    return;
-  }
+    const booking = bookings.find(
+        b => b.date === date && b.status !== "Cancelled"
+    );
+    if (booking) {
+        alert("This date already has a booking.");
+        return;
+    }
 
-  const booking = bookings.find(b => b.date === date && b.status !== "Cancelled");
-  if (booking) {
-    showToast("This date already has a booking.", "error");
-    return;
-  }
+    if (blockedDates.includes(date)) {
+        alert("Date is already blocked.");
+        return;
+    }
 
-  if (blockedDates.includes(date)) {
-    showToast("Date is already blocked.", "error");
-    return;
-  }
+    try {
+        const { error } = await supabaseClient
+            .from('blocked_dates')
+            .insert([{ date }]);
 
-  try {
-    const { error } = await supabaseClient.from("blocked_dates").insert([{ date }]);
-    if (error) throw error;
-    showToast("Date blocked.", "success");
-    await loadData();
-  } catch (err) {
-    console.error(err);
-    showToast("Error blocking date: " + err.message, "error");
-  }
+        if (error) throw error;
+        alert("Date blocked.");
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error blocking date: " + err.message);
+    }
 }
 
 /* =====================================================
    TABLE
 ===================================================== */
 function renderTable() {
-  const table = document.getElementById("bookingTable");
-  table.innerHTML = "";
+    const table = document.getElementById("bookingTable");
+    table.innerHTML = "";
 
-  if (bookings.length === 0) {
-    table.innerHTML = `<tr class="empty-row"><td colspan="12">No bookings yet.</td></tr>`;
-    return;
-  }
+    if (bookings.length === 0) {
+        table.innerHTML = `
+            <tr>
+                <td colspan="12" style="text-align:center;color:#777;padding:30px;">
+                    No bookings in database.
+                </td>
+            </tr>
+        `;
+        return;
+    }
 
-  bookings
-    .slice()
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .forEach((booking) => {
-      const tr = document.createElement("tr");
-      const stateClass = "is-" + booking.status.toLowerCase();
+    bookings
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((booking) => {
+            const tr = document.createElement("tr");
+            const statusClass = booking.status.toLowerCase();
 
-      tr.innerHTML = `
-        <td>${booking.id.substring(0, 8)}…</td>
-        <td>${escapeHTML(booking.customer)}</td>
-        <td>${escapeHTML(booking.mobile)}</td>
-        <td>${booking.date}</td>
-        <td><span class="status-pill ${stateClass}">${booking.status}</span></td>
-        <td>₹${booking.total_amount || 0}</td>
-        <td>₹${booking.booking_amount || 0}</td>
-        <td>₹${booking.balance || 0}</td>
-        <td>${escapeHTML(booking.payment_mode || "—")}</td>
-        <td>${booking.payment_date || "—"}</td>
-        <td>${escapeHTML(booking.notes || "—")}</td>
-        <td>
-          ${booking.status !== "Cancelled" ? `<button class="action-btn edit-btn" onclick="editBooking('${booking.id}')">Edit</button>` : ""}
-          ${booking.status === "Reserved" ? `<button class="action-btn book-btn" onclick="confirmBooking('${booking.id}')">Book</button>` : ""}
-          ${booking.status !== "Cancelled" ? `<button class="action-btn cancel-btn" onclick="cancelBooking('${booking.id}')">Cancel</button>` : ""}
-        </td>
-      `;
-      table.appendChild(tr);
-    });
+            tr.innerHTML = `
+                <td>${booking.id.substring(0, 8)}...</td>
+                <td>${escapeHTML(booking.customer)}</td>
+                <td>${escapeHTML(booking.mobile)}</td>
+                <td>${booking.date}</td>
+                <td>
+                    <span class="status ${statusClass}">
+                        ${booking.status}
+                    </span>
+                </td>
+                <td>₹${booking.total_amount || 0}</td>
+                <td>₹${booking.booking_amount || 0}</td>
+                <td>₹${booking.balance || 0}</td>
+                <td>${escapeHTML(booking.payment_mode || "-")}</td>
+                <td>${booking.payment_date || "-"}</td>
+                <td>${escapeHTML(booking.notes || "-")}</td>
+                <td>
+                    ${booking.status !== "Cancelled" ? `
+                        <button class="action-btn edit-btn" onclick="editBooking('${booking.id}')">
+                            EDIT
+                        </button>
+                    ` : ""}
+                    ${booking.status === "Reserved" ? `
+                        <button class="action-btn book-btn" onclick="confirmBooking('${booking.id}')">
+                            BOOK
+                        </button>
+                    ` : ""}
+                    ${booking.status !== "Cancelled" ? `
+                        <button class="action-btn cancel-btn" onclick="cancelBooking('${booking.id}')">
+                            CANCEL
+                        </button>
+                    ` : ""}
+                </td>
+            `;
+            table.appendChild(tr);
+        });
 }
 
 /* =====================================================
    CONFIRM BOOKING
 ===================================================== */
 async function confirmBooking(id) {
-  try {
-    const { error } = await supabaseClient.from("bookings").update({ status: "Booked" }).eq("id", id);
-    if (error) throw error;
-    showToast("Booking confirmed.", "success");
-    await loadData();
-  } catch (err) {
-    console.error(err);
-    showToast("Error: " + err.message, "error");
-  }
+    try {
+        const { error } = await supabaseClient
+            .from('bookings')
+            .update({ status: "Booked" })
+            .eq('id', id);
+
+        if (error) throw error;
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+    }
 }
 
 /* =====================================================
    CANCEL BOOKING
 ===================================================== */
-function cancelBooking(id) {
-  showConfirm("Cancel this booking? This can't be undone.", async () => {
+async function cancelBooking(id) {
+    if (!confirm("Cancel this booking?")) return;
+
     try {
-      const { error } = await supabaseClient.from("bookings").update({ status: "Cancelled" }).eq("id", id);
-      if (error) throw error;
-      showToast("Booking cancelled.", "success");
-      await loadData();
+        const { error } = await supabaseClient
+            .from('bookings')
+            .update({ status: "Cancelled" })
+            .eq('id', id);
+
+        if (error) throw error;
+        await loadData();
     } catch (err) {
-      console.error(err);
-      showToast("Error: " + err.message, "error");
+        console.error(err);
+        alert("Error: " + err.message);
     }
-  });
 }
 
 /* =====================================================
    DATE DETAILS
 ===================================================== */
 function showDateDetails(date) {
-  const modal = document.getElementById("dateModal");
-  document.getElementById("modalDate").textContent = date;
-  const details = document.getElementById("modalDetails");
+    const modal = document.getElementById("dateModal");
+    const title = document.getElementById("modalDate");
+    const details = document.getElementById("modalDetails");
 
-  const booking = bookings.find(b => b.date === date && b.status !== "Cancelled");
+    title.textContent = date;
 
-  if (blockedDates.includes(date)) {
-    details.innerHTML = `
-      <p style="color: var(--text-muted); margin-bottom: 14px;">This date is blocked.</p>
-      <button class="btn btn-primary" onclick="unblockDate('${date}')">Unblock date</button>
-    `;
-  } else if (booking) {
-    details.innerHTML = `
-      <div class="detail-row"><span>Customer</span><span>${escapeHTML(booking.customer)}</span></div>
-      <div class="detail-row"><span>Mobile</span><span>${escapeHTML(booking.mobile)}</span></div>
-      <div class="detail-row"><span>Status</span><span>${booking.status}</span></div>
-      <div class="detail-row"><span>Total</span><span>₹${booking.total_amount}</span></div>
-      <div class="detail-row"><span>Paid</span><span>₹${booking.booking_amount}</span></div>
-      <div class="detail-row"><span>Balance</span><span>₹${booking.balance}</span></div>
-      <div class="detail-row"><span>Payment mode</span><span>${escapeHTML(booking.payment_mode || "—")}</span></div>
-      <div class="detail-row"><span>Payment date</span><span>${booking.payment_date || "—"}</span></div>
-      <div class="detail-row"><span>Notes</span><span>${escapeHTML(booking.notes || "—")}</span></div>
-      <button class="btn btn-edit" onclick="editBooking('${booking.id}'); closeModal();" style="margin-top:16px;">Edit this booking</button>
-    `;
-  } else {
-    details.innerHTML = `
-      <p style="color: var(--pine); margin-bottom: 14px;">This date is available.</p>
-      <button class="btn btn-primary" onclick="selectDate('${date}')">Add booking</button>
-    `;
-  }
+    const booking = bookings.find(
+        b => b.date === date && b.status !== "Cancelled"
+    );
 
-  modal.classList.add("show");
+    if (blockedDates.includes(date)) {
+        details.innerHTML = `
+            <p style="color:#aaa">
+                This date is <strong>BLOCKED</strong>.
+            </p>
+            <button class="btn btn-primary" onclick="unblockDate('${date}')">
+                UNBLOCK DATE
+            </button>
+        `;
+    } else if (booking) {
+        details.innerHTML = `
+            <p><strong>Customer:</strong> ${escapeHTML(booking.customer)}</p>
+            <p><strong>Mobile:</strong> ${escapeHTML(booking.mobile)}</p>
+            <p><strong>Status:</strong> ${booking.status}</p>
+            <p><strong>Total:</strong> ₹${booking.total_amount}</p>
+            <p><strong>Paid:</strong> ₹${booking.booking_amount}</p>
+            <p><strong>Balance:</strong> ₹${booking.balance}</p>
+            <p><strong>Payment Mode:</strong> ${escapeHTML(booking.payment_mode || "-")}</p>
+            <p><strong>Payment Date:</strong> ${booking.payment_date || "-"}</p>
+            <p><strong>Notes:</strong> ${escapeHTML(booking.notes || "-")}</p>
+            <button class="btn btn-edit" onclick="editBooking('${booking.id}'); closeModal();" style="margin-top:12px;">
+                EDIT THIS BOOKING
+            </button>
+        `;
+    } else {
+        details.innerHTML = `
+            <p style="color:#50e36b">
+                This date is AVAILABLE.
+            </p>
+            <button class="btn btn-primary" onclick="selectDate('${date}')">
+                ADD BOOKING
+            </button>
+        `;
+    }
+
+    modal.style.display = "flex";
 }
 
+/* =====================================================
+   SELECT DATE
+===================================================== */
 function selectDate(date) {
-  document.getElementById("bookingDate").value = date;
-  closeModal();
-  document.getElementById("customerName").focus();
-}
-
-async function unblockDate(date) {
-  try {
-    const { error } = await supabaseClient.from("blocked_dates").delete().eq("date", date);
-    if (error) throw error;
+    document.getElementById("bookingDate").value = date;
     closeModal();
-    showToast("Date unblocked.", "success");
-    await loadData();
-  } catch (err) {
-    console.error(err);
-    showToast("Error: " + err.message, "error");
-  }
+    document.getElementById("customerName").focus();
 }
 
+/* =====================================================
+   UNBLOCK
+===================================================== */
+async function unblockDate(date) {
+    try {
+        const { error } = await supabaseClient
+            .from('blocked_dates')
+            .delete()
+            .eq('date', date);
+
+        if (error) throw error;
+        closeModal();
+        await loadData();
+    } catch (err) {
+        console.error(err);
+        alert("Error: " + err.message);
+    }
+}
+
+/* =====================================================
+   CLOSE MODAL
+===================================================== */
 function closeModal() {
-  document.getElementById("dateModal").classList.remove("show");
+    document.getElementById("dateModal").style.display = "none";
 }
 
 /* =====================================================
    DASHBOARD STATISTICS
 ===================================================== */
 function updateStats() {
-  const activeBookings = bookings.filter(b => b.status !== "Cancelled");
-  const booked = activeBookings.filter(b => b.status === "Booked");
-  const reserved = activeBookings.filter(b => b.status === "Reserved");
-  const revenue = booked.reduce((sum, b) => sum + Number(b.booking_amount || 0), 0);
+    const activeBookings = bookings.filter(b => b.status !== "Cancelled");
+    const booked = activeBookings.filter(b => b.status === "Booked");
+    const reserved = activeBookings.filter(b => b.status === "Reserved");
 
-  document.getElementById("totalBookings").textContent = activeBookings.length;
-  document.getElementById("bookedDates").textContent = booked.length;
-  document.getElementById("reservedDates").textContent = reserved.length;
-  document.getElementById("revenue").textContent = "₹" + revenue.toLocaleString("en-IN");
+    const revenue = booked.reduce(
+        (sum, b) => sum + Number(b.booking_amount || 0), 0
+    );
+
+    document.getElementById("totalBookings").textContent = activeBookings.length;
+    document.getElementById("bookedDates").textContent = booked.length;
+    document.getElementById("reservedDates").textContent = reserved.length;
+    document.getElementById("revenue").textContent = "₹" + revenue.toLocaleString("en-IN");
 }
 
 /* =====================================================
    EVERYTHING UPDATE
 ===================================================== */
 function updateEverything() {
-  renderCalendar();
-  renderTable();
-  updateStats();
+    renderCalendar();
+    renderTable();
+    updateStats();
 }
 
 /* =====================================================
    SECURITY
 ===================================================== */
 function escapeHTML(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 /* =====================================================
-   INIT
-   Fixed: the calendar render, the form's submit listener, and the
-   initial data load are no longer chained after the Supabase
-   client construction — so a bad or missing key can't take any of
-   them down with it.
+   INITIAL LOAD
 ===================================================== */
-function init() {
-  document.getElementById("todayLabel").textContent =
-    new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
-  supabaseReady = initSupabase();
-  document.getElementById("bookingForm").addEventListener("submit", handleBookingSubmit);
-
-  renderCalendar();
-  loadData();
-}
-
-init();
+loadData();
 </script>
 
 </body>
